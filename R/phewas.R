@@ -94,13 +94,17 @@ function(phenotypes,genotypes,data,covariates=c(NA),adjustments=list(NA), outcom
   }
   
   message("Cleaning up...")
+  message(successful.genotypes)
+  message(successful.phenotypes)
   
   #Add significance thresholds
   attributes(sig)$alpha=alpha
   attributes(sig)$n.tests=n.tests
+  attributes(sig)$phenotypes=successful.phenotypes
+  attributes(sig)$genotypes=successful.genotypes
   if(!missing(significance.threshold)) {
     message("Finding significance thresholds...")
-    thresh=match(c("p-value","bonferroni","fdr","simplem-genotype","simplem-phenotype","simplem-product"),significance.threshold)
+    thresh=match(c("p-value","bonferroni","fdr","simplem-genotype","simplem-phenotype","simplem-product","custom"),significance.threshold)
     sm.g=1
     sm.p=1
     #p.value
@@ -155,6 +159,10 @@ function(phenotypes,genotypes,data,covariates=c(NA),adjustments=list(NA), outcom
       sig$simplem.product=sig$p<=alpha/sm
       attributes(sig)$simplem.product=alpha/sm
       attributes(sig)$simplem.product.meff=sm
+    }
+    #custom
+    if(!is.na(thresh[7])) {
+      sig$custom = sig$p <= alpha / (successful.phenotypes * successful.genotypes)
     }
   }
   if(!missing(outcomes)) names(sig)[names(sig)=="phenotype"]="outcome"
